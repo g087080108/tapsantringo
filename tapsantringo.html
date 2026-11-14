@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tập San Điện Tử: Tri Ngộ - Chi Đoàn 12C8</title>
+    <!-- Nhúng thư viện lật sách 3D StPageFlip -->
+    <script src="https://jsdelivr.net"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: radial-gradient(circle, #2c3e50, #1a252f);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+        .book-container {
+            width: 90vw;
+            max-width: 1100px;
+            height: 80vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .page {
+            background-color: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        .page img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        /* Căn chỉnh khung video đè lên đúng khoảng trống trên trang 12-15 */
+        .video-wrapper {
+            position: absolute;
+            top: 13%;
+            left: 11%;
+            width: 78%;
+            height: 70%;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .video-wrapper video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 15px;
+            border: none;
+            border-radius: 25px;
+            background: #3498db;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        button:hover { background: #2980b9; }
+        #music-btn { background: #e67e22; }
+    </style>
+</head>
+<body>
+
+    <div class="book-container">
+        <div id="flipbook">
+            <!-- Trang 1 đến Trang 11 -->
+            <div class="page" data-density="hard"><img src="1.png" alt="Trang 1"></div>
+            <div class="page"><img src="2.png" alt="Trang 2"></div>
+            <div class="page"><img src="3.png" alt="Trang 3"></div>
+            <div class="page"><img src="4.png" alt="Trang 4"></div>
+            <div class="page"><img src="5.png" alt="Trang 5"></div>
+            <div class="page"><img src="6.png" alt="Trang 6"></div>
+            <div class="page"><img src="7.png" alt="Trang 7"></div>
+            <div class="page"><img src="8.png" alt="Trang 8"></div>
+            <div class="page"><img src="9.png" alt="Trang 9"></div>
+            <div class="page"><img src="10.png" alt="Trang 10"></div>
+            <div class="page"><img src="11.png" alt="Trang 11"></div>
+
+            <!-- Trang 12 đến 15: Có chèn video -->
+            <div class="page">
+                <img src="12.png" alt="Trang 12">
+                <div class="video-wrapper"><video id="vid-12" src="video12.mp4" controls></video></div>
+            </div>
+            <div class="page">
+                <img src="13.png" alt="Trang 13">
+                <div class="video-wrapper"><video id="vid-13" src="video13.mp4" controls></video></div>
+            </div>
+            <div class="page">
+                <img src="14.png" alt="Trang 14">
+                <div class="video-wrapper"><video id="vid-14" src="video14.mp4" controls></video></div>
+            </div>
+            <div class="page">
+                <img src="15.png" alt="Trang 15">
+                <div class="video-wrapper"><video id="vid-15" src="video15.mp4" controls></video></div>
+            </div>
+
+            <!-- Trang 16 đến Trang 24 -->
+            <div class="page"><img src="16.png" alt="Trang 16"></div>
+            <div class="page"><img src="17.png" alt="Trang 17"></div>
+            <div class="page"><img src="18.png" alt="Trang 18"></div>
+            <div class="page"><img src="19.png" alt="Trang 19"></div>
+            <div class="page"><img src="20.png" alt="Trang 20"></div>
+            <div class="page"><img src="21.png" alt="Trang 21"></div>
+            <div class="page"><img src="22.png" alt="Trang 22"></div>
+            <div class="page"><img src="23.png" alt="Trang 23"></div>
+            <div class="page" data-density="hard"><img src="24.png" alt="Trang 24"></div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button id="prev-btn">◀ Trang trước</button>
+        <button id="music-btn">🔊 Nhạc nền: Bật</button>
+        <button id="next-btn">Trang sau ▶</button>
+    </div>
+
+    <!-- Nhạc nền -->
+    <audio id="bg-music" src="nhacnen.mp3" loop></audio>
+
+    <script>
+        const bgMusic = document.getElementById('bg-music');
+        const musicBtn = document.getElementById('music-btn');
+        let isMusicAllowed = true;
+
+        // Khởi tạo sách lật tỉ lệ 16:9
+        const pageFlip = new St.PageFlip(document.getElementById('flipbook'), {
+            width: 550,
+            height: 310,
+            size: "stretch",
+            minWidth: 315,
+            maxWidth: 1000,
+            minHeight: 200,
+            maxHeight: 600,
+            showCover: true,
+            mobileScrollSupport: false
+        });
+
+        pageFlip.loadFromHTML(document.querySelectorAll('.page'));
+
+        // Nút điều hướng
+        document.getElementById('prev-btn').addEventListener('click', () => pageFlip.flipPrev());
+        document.getElementById('next-btn').addEventListener('click', () => pageFlip.flipNext());
+
+        // Nút bật/tắt nhạc thủ công
+        musicBtn.addEventListener('click', () => {
+            isMusicAllowed = !isMusicAllowed;
+            if (isMusicAllowed) {
+                musicBtn.textContent = "🔊 Nhạc nền: Bật";
+                checkAudioForCurrentPage(pageFlip.getCurrentPageIndex());
+            } else {
+                musicBtn.textContent = "🔇 Nhạc nền: Tắt";
+                bgMusic.pause();
+            }
+        });
+
+        // Xử lý tự động tắt nhạc khi vào trang 12, 13, 14, 15 (chỉ số index từ 11 đến 14)
+        function checkAudioForCurrentPage(pageIndex) {
+            // Dừng tất cả video nếu lật sang trang khác
+            document.querySelectorAll('video').forEach(v => v.pause());
+
+            // Ở chế độ mở 2 trang (spread), kiểm tra trang hiện tại và trang kế bên
+            const videoPages =; // Tương ứng trang 12, 13, 14, 15
+            const isVideoPage = videoPages.includes(pageIndex) || videoPages.includes(pageIndex + 1);
+
+            if (isVideoPage) {
+                bgMusic.pause(); // Tắt nhạc nền ở trang có video
+            } else if (isMusicAllowed) {
+                bgMusic.play().catch(() => {}); // Phát nhạc nền ở các trang thường
+            }
+        }
+
+        // Lắng nghe sự kiện lật trang
+        pageFlip.on('flip', (e) => {
+            checkAudioForCurrentPage(e.data);
+        });
+    </script>
+</body>
+</html>
